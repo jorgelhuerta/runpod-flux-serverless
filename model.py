@@ -11,6 +11,8 @@ from PIL import Image
 
 from schemas import GenerationRequest
 
+from pathlib import Path
+
 HF_TOKEN = os.getenv("HF_TOKEN")
 
 
@@ -22,6 +24,32 @@ MODEL_ID = os.getenv(
 )
 
 LOCAL_MODEL_PATH = os.getenv("LOCAL_MODEL_PATH")
+
+HF_CACHE_ROOT = Path("/runpod-volume/huggingface-cache/hub")
+
+
+def resolve_cached_model_path(model_id: str) -> Optional[str]:
+    if "/" not in model_id:
+        return None
+
+    org, name = model_id.split("/", 1)
+    model_root = HF_CACHE_ROOT / f"models--{org}--{name}"
+    refs_main = model_root / "refs" / "main"
+    snapshots_dir = model_root / "snapshots"
+
+    if refs_main.is_file():
+        revision = refs_main.read_text().strip()
+        snapshot = snapshots_dir / revision
+
+        if snapshot.is_dir():
+            return str(snapshot)
+
+    if snapshots_dir.is_dir():
+        snapshots = [p for p in snapshots_dir.iterdir() if p.is_dir()]
+        if snapshots:
+            return str(snapshots[0])
+
+    return None
 
 
 @dataclass(frozen=True)
@@ -45,9 +73,22 @@ class FluxModel:
                 "CUDA GPU is required to load FLUX.1-dev."
             )
 
-        source = LOCAL_MODEL_PATH or MODEL_ID
+        cached_path = resolve_cached_model_path(MODEL_ID)
 
-        logger.info("Loading FLUX model from %s", source)
+        source = (
+            LOCAL_MODEL_PATH
+            or cached_path
+            or MODEL_ID
+        )
+
+        if LOCAL_MODEL_PATH:
+            logger.info("Using explicit local model path: %s", source)
+        elif cached_path:
+            logger.info("Using RunPod cached model: %s", source)
+        else:
+            logger.info("Using Hugging Face model ID: %s", source)
+
+            logger.info("Loading FLUX model from %s", source)
 
         started = time.perf_counter()
 

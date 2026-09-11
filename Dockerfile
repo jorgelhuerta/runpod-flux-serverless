@@ -1,9 +1,7 @@
 FROM python:3.11-slim
 
 ENV PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    HF_HOME=/runpod-volume/huggingface \
-    TRANSFORMERS_CACHE=/runpod-volume/huggingface
+    PIP_NO_CACHE_DIR=1 
 
 WORKDIR /app
 
