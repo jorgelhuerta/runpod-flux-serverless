@@ -1,6 +1,6 @@
 .git
 .gitignore
-
+.github
 .venv
 venv
 
@@ -13,7 +13,7 @@ __pycache__
 
 tests
 docs
-
+examples
 outputs
 
 .pytest_cache

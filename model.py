@@ -11,6 +11,8 @@ from PIL import Image
 
 from schemas import GenerationRequest
 
+HF_TOKEN = os.getenv("HF_TOKEN")
+
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +54,7 @@ class FluxModel:
         pipeline = FluxPipeline.from_pretrained(
             source,
             torch_dtype=torch.bfloat16,
+            token=HF_TOKEN,
         )
 
         pipeline.to("cuda")
