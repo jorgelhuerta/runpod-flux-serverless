@@ -1,0 +1,10 @@
+{
+  "input": {
+    "prompt": "A cinematic photograph of a futuristic GPU data center at night, rows of illuminated servers, dramatic volumetric lighting, highly detailed",
+    "width": 1024,
+    "height": 1024,
+    "num_inference_steps": 28,
+    "guidance_scale": 3.5,
+    "seed": 42
+  }
+}

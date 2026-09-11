@@ -1,3 +1,4 @@
+import secrets
 import logging
 import os
 import time
@@ -78,7 +79,7 @@ class FluxModel:
         seed = (
             request.seed
             if request.seed is not None
-            else torch.seed()
+            else secrets.randbits(63)
         )
 
         generator = torch.Generator(

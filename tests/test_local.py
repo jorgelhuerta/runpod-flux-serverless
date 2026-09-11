@@ -1,5 +1,13 @@
 import pytest
 
+import base64
+import io
+
+from PIL import Image
+
+import handler as handler_module
+from model import GenerationResult
+
 from schemas import (
     DEFAULT_GUIDANCE_SCALE,
     DEFAULT_HEIGHT,
@@ -112,3 +120,90 @@ def test_model_rejects_missing_cuda(monkeypatch):
         assert False, "Expected RuntimeError"
     except RuntimeError as exc:
         assert "CUDA GPU is required" in str(exc)
+
+
+def test_handler_rejects_invalid_request():
+    response = handler_module.handler(
+        {
+            "input": {}
+        }
+    )
+
+    assert response["error"]["type"] == "validation_error"
+    assert "prompt" in response["error"]["message"]
+
+
+def test_handler_generates_encoded_image(monkeypatch):
+    test_image = Image.new(
+        "RGB",
+        (512, 512),
+        "white",
+    )
+
+    def fake_generate(request):
+        return GenerationResult(
+            image=test_image,
+            seed=42,
+            inference_time_seconds=1.25,
+        )
+
+    monkeypatch.setattr(
+        handler_module.flux_model,
+        "generate",
+        fake_generate,
+    )
+
+    response = handler_module.handler(
+        {
+            "input": {
+                "prompt": "A futuristic city at sunset",
+                "width": 512,
+                "height": 512,
+                "num_inference_steps": 20,
+                "seed": 42,
+            }
+        }
+    )
+
+    assert response["image"]["encoding"] == "base64"
+    assert response["image"]["format"] == "jpeg"
+
+    assert response["parameters"]["seed"] == 42
+    assert response["parameters"]["width"] == 512
+    assert response["parameters"]["height"] == 512
+
+    image_bytes = base64.b64decode(
+        response["image"]["data"]
+    )
+
+    decoded_image = Image.open(
+        io.BytesIO(image_bytes)
+    )
+
+    assert decoded_image.format == "JPEG"
+    assert decoded_image.size == (512, 512)
+
+
+def test_handler_propagates_generation_failure(monkeypatch):
+    def fake_generate(request):
+        raise RuntimeError("simulated GPU failure")
+
+    monkeypatch.setattr(
+        handler_module.flux_model,
+        "generate",
+        fake_generate,
+    )
+
+    try:
+        handler_module.handler(
+            {
+                "input": {
+                    "prompt": "test"
+                }
+            }
+        )
+
+        assert False, "Expected RuntimeError"
+
+    except RuntimeError as exc:
+        assert "simulated GPU failure" in str(exc)
