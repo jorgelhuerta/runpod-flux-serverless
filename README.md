@@ -144,6 +144,32 @@ Test configuration:
 | GPU tier | 48 GB |
 | GPU types | A40 / RTX A6000 |
 
+## Demo UI
+
+A lightweight Streamlit frontend is included under `ui/`.
+
+The UI allows a user to:
+
+- Enter a text prompt
+- Select image width and height
+- Configure inference steps
+- Adjust guidance scale
+- Set a deterministic seed
+- Submit the request to the deployed RunPod Serverless endpoint
+- View generation status
+- Preview the generated image
+- See inference and end-to-end latency
+- Download the generated JPEG
+
+The RunPod API key is read server-side from environment variables and is never exposed to browser JavaScript.
+
+### Run the UI locally
+
+Install the UI dependencies:
+
+```bash
+pip install -r ui/requirements.txt
+
 ## Performance
 
 A controlled cold/warm test was performed using the same prompt, parameters,
