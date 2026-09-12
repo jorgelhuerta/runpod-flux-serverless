@@ -1,0 +1,18 @@
+{
+  "image": {
+    "encoding": "base64",
+    "format": "jpeg",
+    "data": "<base64-encoded JPEG omitted from repository example>"
+  },
+  "parameters": {
+    "width": 1024,
+    "height": 1024,
+    "num_inference_steps": 28,
+    "guidance_scale": 3.5,
+    "seed": 42
+  },
+  "metrics": {
+    "inference_time_seconds": 27.63,
+    "total_time_seconds": 27.63
+  }
+}
